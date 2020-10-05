@@ -13,7 +13,7 @@
 #include <algorithm>
 
 #include <windows.h>
-#include <strsafe.h>
+#include "../../tstring.hpp"
 
 #if defined(DELETE)
   #undef DELETE
@@ -28,34 +28,29 @@
 
 //---------------------------------------------------------------------------//
 
-namespace tapetums
-{
+namespace tapetums {
     class File;
 }
 
 //---------------------------------------------------------------------------//
 
 // Windows ファイル RAII クラス
-class tapetums::File
-{
+class tapetums::File {
 public:
-    enum class ACCESS : DWORD
-    {
+    enum class ACCESS : DWORD {
         UNKNOWN = 0,
         READ    = GENERIC_READ,
         WRITE   = GENERIC_READ | GENERIC_WRITE,
     };
 
-    enum class SHARE : DWORD
-    {
+    enum class SHARE : DWORD {
         EXCLUSIVE = 0,
         READ      = FILE_SHARE_READ,
         WRITE     = FILE_SHARE_READ | FILE_SHARE_WRITE,
         DELETE    = FILE_SHARE_DELETE,
     };
 
-    enum class OPEN : DWORD
-    {
+    enum class OPEN : DWORD {
         NEW         = CREATE_NEW,        // Fails   if existing
         OR_TRUNCATE = CREATE_ALWAYS,     // Clears  if existing
         EXISTING    = OPEN_EXISTING,     // Fails   if not existing
@@ -63,15 +58,14 @@ public:
         TRUNCATE    = TRUNCATE_EXISTING, // Fails   if not existing
     };
 
-    enum class ORIGIN : DWORD
-    {
+    enum class ORIGIN : DWORD {
         BEGIN   = FILE_BEGIN,
         CURRENT = FILE_CURRENT,
         END     = FILE_END,
     };
 
 protected:
-    wchar_t m_name[MAX_PATH] { '\0' };
+    wchar_t m_name[MAX_PATH] { L'\0' };
 
     HANDLE   m_handle { INVALID_HANDLE_VALUE };
     HANDLE   m_map    { nullptr };
@@ -132,25 +126,13 @@ public:
 //---------------------------------------------------------------------------//
 
 // ファイルを開く
-inline bool tapetums::File::Open
-(
-    LPCWSTR lpFileName,
-    ACCESS  accessMode,
-    SHARE   shareMode,
-    OPEN    createMode
-)
-{
-    if ( m_handle != INVALID_HANDLE_VALUE ) { return true; }
+inline bool tapetums::File::Open(LPCWSTR lpFileName, ACCESS accessMode, SHARE shareMode, OPEN createMode) {
+    if (m_handle != INVALID_HANDLE_VALUE) { return true; }
 
     ::StringCchCopyW(m_name, MAX_PATH, lpFileName);
 
-    m_handle = ::CreateFileW
-    (
-        lpFileName, (DWORD)accessMode, (DWORD)shareMode, nullptr,
-        (DWORD)createMode, FILE_ATTRIBUTE_NORMAL, nullptr
-    );
-    if ( m_handle == INVALID_HANDLE_VALUE )
-    {
+    m_handle = ::CreateFileW(lpFileName, (DWORD)accessMode, (DWORD)shareMode, nullptr, (DWORD)createMode, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (m_handle == INVALID_HANDLE_VALUE) {
         return false;
     }
 
@@ -164,34 +146,20 @@ inline bool tapetums::File::Open
 //---------------------------------------------------------------------------//
 
 // メモリマップトファイルを開く
-inline bool tapetums::File::Open
-(
-    LPCWSTR lpName, ACCESS accessMode
-)
-{
-    if ( m_map ) { return true; }
-    if ( m_handle != INVALID_HANDLE_VALUE ) { return false; }
+inline bool tapetums::File::Open(LPCWSTR lpName, ACCESS accessMode) {
+    if (m_map) { return true; }
+    if (m_handle != INVALID_HANDLE_VALUE) { return false; }
 
     ::StringCchCopyW(m_name, MAX_PATH, lpName);
+    wmemmove()
 
-    m_map = ::OpenFileMappingW
-    (
-        accessMode == ACCESS::READ ? FILE_MAP_READ : FILE_MAP_WRITE,
-        FALSE, lpName
-    );
-    if ( nullptr == m_map )
-    {
+    m_map = ::OpenFileMappingW(accessMode == ACCESS::READ ? FILE_MAP_READ : FILE_MAP_WRITE, FALSE, lpName);
+    if ( nullptr == m_map ) {
         return false;
     }
 
-    m_ptr = (uint8_t*)::MapViewOfFile
-    (
-        m_map,
-        accessMode == ACCESS::READ ? FILE_MAP_READ : FILE_MAP_WRITE,
-        0, 0, 0
-    );
-    if ( nullptr == m_ptr )
-    {
+    m_ptr = (uint8_t*)::MapViewOfFile(m_map, accessMode == ACCESS::READ ? FILE_MAP_READ : FILE_MAP_WRITE, 0, 0, 0);
+    if ( nullptr == m_ptr ) {
         UnMap();
         return false;
     }
@@ -202,13 +170,11 @@ inline bool tapetums::File::Open
 //---------------------------------------------------------------------------//
 
 // ファイルを閉じる
-inline void tapetums::File::Close()
-{
+inline void tapetums::File::Close() {
     UnMap();
     Flush();
 
-    if ( m_handle != INVALID_HANDLE_VALUE )
-    {
+    if ( m_handle != INVALID_HANDLE_VALUE ) {
         ::CloseHandle(m_handle);
         m_handle = INVALID_HANDLE_VALUE;
     }
@@ -220,11 +186,7 @@ inline void tapetums::File::Close()
 //---------------------------------------------------------------------------//
 
 // 既存のファイルをメモリにマップする
-inline bool tapetums::File::Map
-(
-    ACCESS accessMode
-)
-{
+inline bool tapetums::File::Map(ACCESS accessMode) {
     if ( m_handle == INVALID_HANDLE_VALUE ) { return false; }
 
     return Map(0, nullptr, accessMode);
@@ -233,11 +195,7 @@ inline bool tapetums::File::Map
 //---------------------------------------------------------------------------//
 
 // メモリマップトファイルを生成する
-inline bool tapetums::File::Map
-(
-    int64_t size, LPCWSTR lpName, ACCESS accessMode
-)
-{
+inline bool tapetums::File::Map(int64_t size, LPCWSTR lpName, ACCESS accessMode) {
     if ( m_map ) { return true; }
 
     LARGE_INTEGER li;
