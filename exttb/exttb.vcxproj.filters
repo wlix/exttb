@@ -48,20 +48,23 @@
     <ClInclude Include="..\message_def.hpp">
       <Filter>ヘッダー ファイル\common</Filter>
     </ClInclude>
-    <ClInclude Include="include\ctrl_wnd.h">
+    <ClInclude Include="include\CtrlWnd.hpp">
       <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\file.h">
+    <ClInclude Include="include\File.hpp">
       <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\font.h">
+    <ClInclude Include="include\Font.hpp">
       <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\generate_uuid.h">
+    <ClInclude Include="include\GenerateUUIDString.hpp">
       <Filter>ヘッダー ファイル\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\uwnd.hpp">
+    <ClInclude Include="include\UWnd.hpp">
       <Filter>ヘッダー ファイル\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tstring.hpp">
+      <Filter>ヘッダー ファイル\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

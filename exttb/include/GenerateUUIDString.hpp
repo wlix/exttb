@@ -10,15 +10,17 @@
 //---------------------------------------------------------------------------//
 
 #include <windows.h>
-#include <strsafe.h>
+#include <combaseapi.h>
+
+#include <stdio.h>
+
+#include "../../tstring.hpp"
 
 //---------------------------------------------------------------------------//
 
-namespace tapetums
-{
-    inline void GenerateUUIDStringA(char*    buf, size_t cch_buf);
-    inline void GenerateUUIDStringW(wchar_t* buf, size_t cch_buf);
-}
+
+inline void GenerateUUIDStringA(char*    buf, size_t cch_buf);
+inline void GenerateUUIDStringW(wchar_t* buf, size_t cch_buf);
 
 #if defined(_UNICODE) || defined(UNICODE)
   #define GenerateUUIDString GenerateUUIDStringW
@@ -28,12 +30,9 @@ namespace tapetums
 
 //---------------------------------------------------------------------------//
 
-inline void tapetums::GenerateUUIDStringA(char* buf, size_t cch_buf)
-{
-    if ( cch_buf >= 38 + 1 )
-    {
-        struct REG_UUID
-        {
+inline void GenerateUUIDStringA(char* buf, size_t cch_buf) {
+    if (cch_buf >= 38 + 1) {
+        struct REG_UUID {
             UINT32 data1;
             UINT16 data2;
             UINT16 data3;
@@ -41,9 +40,12 @@ inline void tapetums::GenerateUUIDStringA(char* buf, size_t cch_buf)
             UINT8  data5[6];
         } uuid;
 
-        ::CoCreateGuid((GUID*)&uuid);
+        if (FAILED(::CoCreateGuid((GUID*)&uuid))) {
+            buf[0] = '\0';
+            return;
+        }
 
-        ::StringCchPrintfA
+        ::_snprintf
         (
             buf, cch_buf,
             "{%08X-%04X-%04X-%04X-%02X%02X%02X%02X%02X%02X}",
@@ -52,12 +54,14 @@ inline void tapetums::GenerateUUIDStringA(char* buf, size_t cch_buf)
             uuid.data5[3], uuid.data5[4], uuid.data5[5]
         );
     }
-    else if ( cch_buf >= 32 + 1 )
-    {
+    else if (cch_buf >= 32 + 1) {
         GUID guid;
-        ::CoCreateGuid((GUID*)&guid);
+        if (FAILED(::CoCreateGuid((GUID*)&guid))) {
+            buf[0] = '\0';
+            return;
+        }
 
-        ::StringCchPrintfA
+        ::_snprintf
         (
             buf, cch_buf,
             "%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x",
@@ -66,20 +70,16 @@ inline void tapetums::GenerateUUIDStringA(char* buf, size_t cch_buf)
             guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]
         );
     }
-    else
-    {
-        buf[0] = L'\0';
+    else {
+        buf[0] = '\0';
     }
 }
 
 //---------------------------------------------------------------------------//
 
-inline void tapetums::GenerateUUIDStringW(wchar_t* buf, size_t cch_buf)
-{
-    if ( cch_buf >= 38 + 1 )
-    {
-        struct REG_UUID
-        {
+inline void GenerateUUIDStringW(wchar_t* buf, size_t cch_buf) {
+    if ( cch_buf >= 38 + 1 ) {
+        struct REG_UUID {
             UINT32 data1;
             UINT16 data2;
             UINT16 data3;
@@ -87,9 +87,12 @@ inline void tapetums::GenerateUUIDStringW(wchar_t* buf, size_t cch_buf)
             UINT8  data5[6];
         } uuid;
 
-        ::CoCreateGuid((GUID*)&uuid);
-
-        ::StringCchPrintfW
+        if (FAILED(::CoCreateGuid((GUID*)&uuid))) {
+            buf[0] = L'\0';
+            return;
+        }
+        
+        ::_snwprintf
         (
             buf, cch_buf,
             L"{%08X-%04X-%04X-%04X-%02X%02X%02X%02X%02X%02X}",
@@ -98,12 +101,14 @@ inline void tapetums::GenerateUUIDStringW(wchar_t* buf, size_t cch_buf)
             uuid.data5[3], uuid.data5[4], uuid.data5[5]
         );
     }
-    else if ( cch_buf >= 32 + 1 )
-    {
+    else if ( cch_buf >= 32 + 1 ) {
         GUID guid;
-        ::CoCreateGuid((GUID*)&guid);
+        if (FAILED(::CoCreateGuid((GUID*)&guid))) {
+            buf[0] = L'\0';
+            return;
+        }
 
-        ::StringCchPrintfW
+        ::_snwprintf
         (
             buf, cch_buf,
             L"%08x%04x%04x%02x%02x%02x%02x%02x%02x%02x%02x",
@@ -112,8 +117,7 @@ inline void tapetums::GenerateUUIDStringW(wchar_t* buf, size_t cch_buf)
             guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]
         );
     }
-    else
-    {
+    else {
         buf[0] = L'\0';
     }
 }

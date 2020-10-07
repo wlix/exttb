@@ -8,9 +8,6 @@
 //
 //---------------------------------------------------------------------------//
 
-#ifndef WIN32_LEAN_AND_MEAN
-  #define WIN32_LEAN_AND_MEAN 
-#endif
 #include <windows.h>
 
 #include "plugin.hpp"
@@ -76,8 +73,7 @@ void WINAPI TTBEvent_FreePluginInfo(PLUGIN_INFO* PluginInfo)
 //---------------------------------------------------------------------------//
 
 // プラグイン初期化
-BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
-{
+BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin) {
     RegisterMessages();
 
     // キャッシュのために、TTBPlugin_InitPluginInfoは呼ばれない場合がある
@@ -111,8 +107,7 @@ BOOL WINAPI TTBEvent_Init(LPTSTR PluginFilename, DWORD_PTR hPlugin)
 //---------------------------------------------------------------------------//
 
 // プラグインアンロード時の処理
-void WINAPI TTBEvent_Unload()
-{
+void WINAPI TTBEvent_Unload() {
     Unload();
 
     free_tstring(g_info.Filename);
@@ -122,16 +117,14 @@ void WINAPI TTBEvent_Unload()
 //---------------------------------------------------------------------------//
 
 // コマンド実行
-BOOL WINAPI TTBEvent_Execute(INT32 CommandID, HWND hWnd)
-{
+BOOL WINAPI TTBEvent_Execute(INT32 CommandID, HWND hWnd) {
     return Execute(CommandID, hWnd);
 }
 
 //---------------------------------------------------------------------------//
 
 // フック（ShellHook,MouseHook)
-void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam)
-{
+void WINAPI TTBEvent_WindowsHook(UINT Msg, WPARAM wParam, LPARAM lParam) {
     Hook(Msg, wParam, lParam);
 }
 

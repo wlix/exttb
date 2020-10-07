@@ -21,23 +21,21 @@
 
 //---------------------------------------------------------------------------//
 
-namespace tapetums {
-    class CtrlWnd;
-    class LabelWnd;
-    class BtnWnd;
-    class EditWnd;
-    class ComboBox;
-    class ListWnd;
-    class TreeWnd;
-    class TrackbarWnd;
-    class DateTimeWnd;
-}
+class CtrlWnd;
+class LabelWnd;
+class BtnWnd;
+class EditWnd;
+class ComboBox;
+class ListWnd;
+class TreeWnd;
+class TrackbarWnd;
+class DateTimeWnd;
 
 //---------------------------------------------------------------------------//
 // Classes
 //---------------------------------------------------------------------------//
 
-class tapetums::CtrlWnd : public tapetums::UWnd {
+class CtrlWnd : public UWnd {
     using super = UWnd;
 
 protected:
@@ -130,7 +128,7 @@ public:
 
 //---------------------------------------------------------------------------//
 
-class tapetums::LabelWnd : public tapetums::CtrlWnd {
+class LabelWnd : public CtrlWnd {
     using super = CtrlWnd;
 
 public:
@@ -147,7 +145,7 @@ public:
 
 //---------------------------------------------------------------------------//
 
-class tapetums::BtnWnd : public tapetums::CtrlWnd {
+class BtnWnd : public CtrlWnd {
     using super = CtrlWnd;
 
 public:
@@ -180,7 +178,7 @@ public:
 
 //---------------------------------------------------------------------------//
 
-class tapetums::EditWnd : public tapetums::CtrlWnd {
+class EditWnd : public CtrlWnd {
     using super = CtrlWnd;
 
 public:
@@ -197,7 +195,7 @@ public:
 
 //---------------------------------------------------------------------------//
 
-class tapetums::ComboBox : public tapetums::CtrlWnd {
+class ComboBox : public CtrlWnd {
     using super = CtrlWnd;
 
 public:
@@ -236,7 +234,7 @@ public:
 
 //---------------------------------------------------------------------------//
 
-class tapetums::ListWnd : public tapetums::CtrlWnd {
+class ListWnd : public CtrlWnd {
     using super = CtrlWnd;
 
 public:
@@ -381,7 +379,7 @@ public:
 
 //---------------------------------------------------------------------------//
 
-class tapetums::TreeWnd : public tapetums::CtrlWnd {
+class TreeWnd : public CtrlWnd {
     using super = CtrlWnd;
 
 public:
@@ -430,7 +428,7 @@ public:
 
 //---------------------------------------------------------------------------//
 
-class tapetums::TrackbarWnd : public tapetums::CtrlWnd {
+class TrackbarWnd : public CtrlWnd {
     using super = CtrlWnd;
 
 public:
@@ -503,7 +501,7 @@ protected:
 
 //---------------------------------------------------------------------------//
 
-class tapetums::DateTimeWnd : public tapetums::CtrlWnd {
+class DateTimeWnd : public CtrlWnd {
     using super = CtrlWnd;
 
 public:

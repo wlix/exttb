@@ -12,15 +12,13 @@
 
 //---------------------------------------------------------------------------//
 
-namespace tapetums 
-{
-    class Font;
-}
+
+class Font;
+
 
 //---------------------------------------------------------------------------//
 
-class tapetums::Font
-{
+class Font {
 private:
     INT32   size   { 0 };
     INT32   weight { 0 };
@@ -43,11 +41,7 @@ public:
     operator HFONT() { return font; }
 
 public:
-    HFONT create
-    (
-        INT32 font_size, LPCTSTR font_name, INT32 cWeight = FW_REGULAR
-    )
-    {
+    HFONT create(INT32 font_size, LPCTSTR font_name, INT32 cWeight = FW_REGULAR) {
         font = ::CreateFont
         (
             font_size, 0, 0, 0,
@@ -57,8 +51,7 @@ public:
             font_name
         );
 
-        if ( font )
-        {
+        if (font) {
             size   = font_size;
             name   = font_name;
             weight = cWeight;
@@ -67,9 +60,8 @@ public:
         return font;
     }
 
-    void free()
-    {
-        if ( font ) { ::DeleteObject(font); font = nullptr; }
+    void free() {
+        if (font) { ::DeleteObject(font); font = nullptr; }
     }
 };
 

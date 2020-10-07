@@ -7,39 +7,43 @@
 LPTSTR malloc_tstring(LPCTSTR src) {
   const auto len = 1 + _tcslen(src);
   auto dst = tmalloc(len);
-  tmemcpy(dst, src, len);
+  if (dst != nullptr) { tmemcpy(dst, src, len); }
   return dst;
 }
 
 // 文字列を削除する
 void free_tstring(LPTSTR str) {
-  if (str) { free(str); str = nullptr; }
+  if (str != nullptr) { free(str); str = nullptr; }
 }
 
 // プラグイン情報構造体をディープコピーして返す
 PLUGIN_INFO* CopyPluginInfo(const PLUGIN_INFO *Src) {
-  if ( Src == nullptr ) { return nullptr; }
+  if (Src == nullptr) { return nullptr; }
 
   const auto info = (PLUGIN_INFO *)malloc(sizeof(PLUGIN_INFO));
-  ZeroMemory(info, sizeof(PLUGIN_INFO));
-  
-  // プラグイン情報のコピー
-  *info = *Src;
 
-  info->Name     = malloc_tstring(Src->Name);
-  info->Filename = malloc_tstring(Src->Filename);
-  info->Commands = (Src->CommandCount == 0) ?
-                    nullptr : new PLUGIN_COMMAND_INFO[Src->CommandCount];
+  if (info != nullptr) {
+    ZeroMemory(info, sizeof(PLUGIN_INFO));
+    *info = *Src;
 
-  // コマンド情報のコピー
-  if ( info->Commands != nullptr && Src->Commands != nullptr )
-  {
-    for ( size_t i = 0; i < Src->CommandCount; ++i )
-    {
-      info->Commands[i] = Src->Commands[i];
+    // プラグイン情報のコピー
+    info->Name     = malloc_tstring(Src->Name);
+    info->Filename = malloc_tstring(Src->Filename);
+    if (Src->CommandCount == 0) {
+      info->Commands = nullptr;
+    }
+    else {
+      info->Commands = (PLUGIN_COMMAND_INFO *)malloc(Src->CommandCount * sizeof(PLUGIN_COMMAND_INFO));
+      if (info->Commands != nullptr) { ZeroMemory(info->Commands, Src->CommandCount * sizeof(PLUGIN_COMMAND_INFO)); }
+    }
+    // コマンド情報のコピー
+    if (info->Commands != nullptr && Src->Commands != nullptr) {
+      for (size_t i = 0; i < Src->CommandCount; ++i) {
+        info->Commands[i] = Src->Commands[i];
 
-      info->Commands[i].Name    = malloc_tstring(Src->Commands[i].Name);
-      info->Commands[i].Caption = malloc_tstring(Src->Commands[i].Caption);
+        info->Commands[i].Name    = malloc_tstring(Src->Commands[i].Name);
+        info->Commands[i].Caption = malloc_tstring(Src->Commands[i].Caption);
+      }
     }
   }
 
@@ -47,67 +51,63 @@ PLUGIN_INFO* CopyPluginInfo(const PLUGIN_INFO *Src) {
 }
 
 // プラグイン側で作成されたプラグイン情報構造体を破棄する
-void FreePluginInfo(PLUGIN_INFO* PluginInfo)
-{
-    if ( PluginInfo == nullptr ) { return; }
+void FreePluginInfo(PLUGIN_INFO* PluginInfo) {
+    if (PluginInfo == nullptr) { return; }
 
     // コマンド情報構造体配列の破棄
-    if ( PluginInfo->Commands != nullptr )
+    if (PluginInfo->Commands != nullptr)
     {
-        for ( size_t i = 0; i < PluginInfo->CommandCount; ++i )
-        {
+        for (size_t i = 0; i < PluginInfo->CommandCount; ++i) {
             const auto pCI = &PluginInfo->Commands[i];
 
             free_tstring(pCI->Name);
             free_tstring(pCI->Caption);
         }
-        delete[] PluginInfo->Commands;
+        free(PluginInfo->Commands);
     }
 
     free_tstring(PluginInfo->Filename);
     free_tstring(PluginInfo->Name);
 
-    delete PluginInfo;
+    free(PluginInfo);
 }
 
 //---------------------------------------------------------------------------//
 
 // バージョン情報を返す
-void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS)
-{
-    if ( VersionMS == nullptr || VersionLS == nullptr ) { return; }
+void GetVersion(LPTSTR Filename, DWORD* VersionMS, DWORD* VersionLS) {
+  if (VersionMS == nullptr || VersionLS == nullptr) { return; }
 
-    // DLL ファイルに埋め込まれたバージョンリソースのサイズを取得
-    DWORD VersionHandle;
-    const auto VersionSize = GetFileVersionInfoSize(Filename, &VersionHandle);
-    if (VersionSize == 0) { return; }
+  // DLL ファイルに埋め込まれたバージョンリソースのサイズを取得
+  DWORD VersionHandle;
+  const auto VersionSize = GetFileVersionInfoSize(Filename, &VersionHandle);
+  if (VersionSize == 0) { return; }
 
-    // バージョンリソースを読み込む
-    const auto pVersionInfo = (BYTE *)malloc(VersionSize * sizeof(BYTE));
+  // バージョンリソースを読み込む
+  const auto pVersionInfo = (BYTE *)malloc(VersionSize * sizeof(BYTE));
+  if (pVersionInfo != nullptr) {
     ZeroMemory(pVersionInfo, VersionSize * sizeof(BYTE));
-    if ( VersionHandle == 0 && GetFileVersionInfo(Filename, VersionHandle, VersionSize, pVersionInfo) )
-    {
-        VS_FIXEDFILEINFO* FixedFileInfo;
-        UINT itemLen;
+    if (VersionHandle == 0 && GetFileVersionInfo(Filename, VersionHandle, VersionSize, pVersionInfo)) {
+      VS_FIXEDFILEINFO* FixedFileInfo;
+      UINT itemLen;
 
-        // バージョンリソースからファイルバージョンを取得
-        if ( VerQueryValue(pVersionInfo, (LPTSTR)TEXT("\\"), (void **)&FixedFileInfo, &itemLen) )
-        {
-            *VersionMS = FixedFileInfo->dwFileVersionMS;
-            *VersionLS = FixedFileInfo->dwFileVersionLS;
-        }
+      // バージョンリソースからファイルバージョンを取得
+      if (VerQueryValue(pVersionInfo, (LPTSTR)TEXT("\\"), (void **)&FixedFileInfo, &itemLen)) {
+        *VersionMS = FixedFileInfo->dwFileVersionMS;
+        *VersionLS = FixedFileInfo->dwFileVersionLS;
+      }
     }
     free(pVersionInfo);
+  }
 }
 
 //---------------------------------------------------------------------------//
 
 // ほかのプラグインのコマンドを実行する
-BOOL ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID)
-{
+BOOL ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID) {
   #if defined(_USRDLL)
     // 本体が TTBPlugin_ExecuteCommand をエクスポートしていない場合は何もしない
-    if ( TTBPlugin_ExecuteCommand == nullptr ) { return TRUE; }
+    if (TTBPlugin_ExecuteCommand == nullptr) { return TRUE; }
   #endif
 
     return TTBPlugin_ExecuteCommand(pluginName, CmdID);
