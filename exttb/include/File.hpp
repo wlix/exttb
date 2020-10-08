@@ -136,7 +136,7 @@ inline bool win_file::open(LPCWSTR lpName, ACCESS accessMode) {
     if (m_map) { return true; }
     if (m_handle != INVALID_HANDLE_VALUE) { return false; }
 
-    wmemmove(m_name, lpName, MAX_PATH);
+    wmemcpy(m_name, lpName, MAX_PATH);
 
     m_map = ::OpenFileMappingW(accessMode == ACCESS::READ ? FILE_MAP_READ : FILE_MAP_WRITE, FALSE, lpName);
     if (nullptr == m_map) {

@@ -110,7 +110,7 @@ BOOL ExecutePluginCommand(LPCTSTR pluginName, INT32 CmdID) {
     if (TTBPlugin_ExecuteCommand == nullptr) { return TRUE; }
   #endif
 
-    return TTBPlugin_ExecuteCommand(pluginName, CmdID);
+  return TTBPlugin_ExecuteCommand(pluginName, CmdID);
 }
 
 //---------------------------------------------------------------------------//
