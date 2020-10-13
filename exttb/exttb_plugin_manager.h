@@ -28,7 +28,7 @@ struct ITTBPlugin {
   virtual LPCTSTR type()      const noexcept = 0;
 
   // Acessors
-  virtual const TCHAR* path()   const noexcept = 0;
+  virtual const TCHAR*       path()   const noexcept = 0;
   virtual const HMODULE      handle() const noexcept = 0;
   virtual const PLUGIN_INFO* info()   const noexcept = 0;
 

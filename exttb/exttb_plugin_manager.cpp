@@ -388,8 +388,7 @@ void PluginMgr::FreeAll() {
   SystemLog(TEXT("%s"), TEXT("すべてのプラグインを解放"));
 
   // ロードとは逆順に解放 ... システムプラグインは解放しない
-  while (plugins.size() > 1)
-  {
+  while (plugins.size() > 1) {
     plugins.pop_back();
   }
 
@@ -398,16 +397,9 @@ void PluginMgr::FreeAll() {
 
 //---------------------------------------------------------------------------//
 
-const ITTBPlugin* PluginMgr::Find
-(
-  LPCTSTR PluginFilename
-)
-const noexcept
-{
-  for (auto&& plugin : plugins)
-  {
-    if (0 == lstrcmp(PluginFilename, plugin->info()->Filename))
-    {
+const ITTBPlugin* PluginMgr::Find(LPCTSTR PluginFilename) const noexcept {
+  for (auto&& plugin : plugins) {
+    if (0 == lstrcmp(PluginFilename, plugin->info()->Filename)) {
       return plugin.get();
     }
   }
@@ -455,33 +447,18 @@ void PluginMgr::CollectFile(LPCTSTR dir_path, LPCTSTR ext) {
       for (s = path + lstrlen(path) - 1; *s != '.'; --s);
 
       // 目的の拡張子だったら
-      if (0 == lstrcmp(s, ext))
-      {
+      if (0 == lstrcmp(s, ext)) {
         // コンテナに収録
         ITTBPlugin* plugin;
 
         plugin = new TTBasePlugin(path); // 通常のプラグイン
-        if (plugin->is_loaded())
-        {
+        if (plugin->is_loaded()) {
           plugins.emplace_back(plugin);
           continue;
         }
-        else
-        {
+        else {
           if (plugin) { delete plugin; }
         }
-
-#if INTPTR_MAX == INT64_MAX
-        plugin = new TTBBridgePlugin(path); // 32ビットのプラグイン
-        if (plugin->is_loaded())
-        {
-          plugins.emplace_back(plugin);
-        }
-        else
-        {
-          if (plugin) { delete plugin; }
-        }
-#endif
       }
     }
   } while (::FindNextFile(hFindFile, &fd));
@@ -522,8 +499,7 @@ void PluginMgr::InitInfoAll() {
     }
 
     // 常駐型でなければ解放
-    if (plugin->info()->PluginType != ptAlwaysLoad)
-    {
+    if (plugin->info()->PluginType != ptAlwaysLoad) {
       plugin->Free();
     }
 
@@ -533,8 +509,7 @@ void PluginMgr::InitInfoAll() {
 
 //---------------------------------------------------------------------------//
 
-void PluginMgr::InitAll()
-{
+void PluginMgr::InitAll() {
   std::array<TCHAR, MAX_PATH> exe_path;
   std::array<TCHAR, MAX_PATH> relative_path;
 
@@ -545,11 +520,9 @@ void PluginMgr::InitAll()
   // * システムプラグインは既に初期化済みのため、リストの2番目から開始
   auto it = ++plugins.begin();
   const auto end = plugins.end();
-  while (it != end)
-  {
+  while (it != end) {
     auto&& plugin = *it;
-    if (plugin->is_loaded())
-    {
+    if (plugin->is_loaded()) {
       ::PathRelativePathTo
       (
         relative_path.data(),

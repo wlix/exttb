@@ -15,41 +15,39 @@
 
 //---------------------------------------------------------------------------//
 
-
 class win_file;
+
+enum class ACCESS : DWORD {
+  UNKNOWN = 0,
+  READ    = GENERIC_READ,
+  WRITE   = GENERIC_READ | GENERIC_WRITE,
+};
+
+enum class SHARE : DWORD {
+  EXCLUSIVE = 0,
+  READ      = FILE_SHARE_READ,
+  WRITE     = FILE_SHARE_READ | FILE_SHARE_WRITE,
+  DELETION  = FILE_SHARE_DELETE,
+};
+
+enum class OPEN : DWORD {
+  NEW         = CREATE_NEW,        // Fails   if existing
+  OR_TRUNCATE = CREATE_ALWAYS,     // Clears  if existing
+  EXISTING    = OPEN_EXISTING,     // Fails   if not existing
+  OR_CREATE   = OPEN_ALWAYS,       // Creates if not existing
+  TRUNCATE    = TRUNCATE_EXISTING, // Fails   if not existing
+};
+
+enum class ORIGIN : DWORD {
+  BEGIN   = FILE_BEGIN,
+  CURRENT = FILE_CURRENT,
+  END     = FILE_END,
+};
 
 //---------------------------------------------------------------------------//
 
 // Windows ファイル RAII クラス
 class win_file {
-public:
-    enum class ACCESS : DWORD {
-        UNKNOWN = 0,
-        READ    = GENERIC_READ,
-        WRITE   = GENERIC_READ | GENERIC_WRITE,
-    };
-
-    enum class SHARE : DWORD {
-        EXCLUSIVE = 0,
-        READ      = FILE_SHARE_READ,
-        WRITE     = FILE_SHARE_READ | FILE_SHARE_WRITE,
-        DELETION  = FILE_SHARE_DELETE,
-    };
-
-    enum class OPEN : DWORD {
-        NEW         = CREATE_NEW,        // Fails   if existing
-        OR_TRUNCATE = CREATE_ALWAYS,     // Clears  if existing
-        EXISTING    = OPEN_EXISTING,     // Fails   if not existing
-        OR_CREATE   = OPEN_ALWAYS,       // Creates if not existing
-        TRUNCATE    = TRUNCATE_EXISTING, // Fails   if not existing
-    };
-
-    enum class ORIGIN : DWORD {
-        BEGIN   = FILE_BEGIN,
-        CURRENT = FILE_CURRENT,
-        END     = FILE_END,
-    };
-
 protected:
     wchar_t  m_name[MAX_PATH] { L'\0' };
 
@@ -61,7 +59,7 @@ protected:
 
 public:
     win_file() = default;
-    ~win_file() { Close(); }
+    ~win_file() { close(); }
 
     win_file(const win_file&)             = delete;
     win_file& operator =(const win_file&) = delete;
@@ -90,7 +88,7 @@ public:
 public:
     bool    open(LPCWSTR lpFileName, ACCESS accessMode, SHARE shareMode, OPEN createMode);
     bool    open(LPCWSTR lpName, ACCESS accessMode);
-    void    Close();
+    void    close();
     bool    map(ACCESS accessMode);
     bool    map(int64_t size, LPCWSTR lpName, ACCESS accessMode);
     void    unmap();
@@ -155,7 +153,7 @@ inline bool win_file::open(LPCWSTR lpName, ACCESS accessMode) {
 //---------------------------------------------------------------------------//
 
 // ファイルを閉じる
-inline void win_file::Close() {
+inline void win_file::close() {
     unmap();
     flush();
 
@@ -193,12 +191,17 @@ inline bool win_file::map(int64_t size, LPCWSTR lpName, ACCESS accessMode) {
         wmemcpy(m_name, lpName, MAX_PATH);
     }
 
-    m_map = ::CreateFileMappingW(m_handle, nullptr, accessMode == ACCESS::READ ? PAGE_READONLY : PAGE_READWRITE, li.HighPart, li.LowPart, lpName);
+    m_map = ::CreateFileMappingW(m_handle,
+      nullptr,
+      accessMode == ACCESS::READ ? PAGE_READONLY : PAGE_READWRITE,
+      li.HighPart, li.LowPart, lpName);
     if (nullptr == m_map) {
         return false;
     }
 
-    m_ptr = (uint8_t*)::MapViewOfFile(m_map, accessMode == ACCESS::READ ? FILE_MAP_READ : FILE_MAP_WRITE, 0, 0, 0);
+    m_ptr = (uint8_t*)::MapViewOfFile(m_map,
+      accessMode == ACCESS::READ ? FILE_MAP_READ : FILE_MAP_WRITE,
+      0, 0, 0);
     if (nullptr == m_ptr) {
         unmap();
         return false;
@@ -216,8 +219,7 @@ inline void win_file::unmap() {
         ::UnmapViewOfFile(m_ptr);
         m_ptr = nullptr;
     }
-    if (m_map)
-    {
+    if (m_map) {
         ::CloseHandle(m_map);
         m_map = nullptr;
     }

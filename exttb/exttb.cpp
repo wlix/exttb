@@ -19,7 +19,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPTSTR
   
   // Duplicate Check
   win_file shared;
-  if (shared.open(SHARED_MEMORY_NAME, win_file::ACCESS::READ)) {
+  if (shared.open(SHARED_MEMORY_NAME, ACCESS::READ)) {
     HWND hwnd;
     // Activate already 
     shared.read(&hwnd, sizeof(HWND));
@@ -29,4 +29,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPTSTR
 
   TTBPlugin_WriteLog(0, ERROR_LEVEL::elInfo, TEXT("起動しました"));
 
+  if (!shared.map(sizeof(HWND), SHARED_MEMORY_NAME, ACCESS::WRITE)) {
+
+  }
 }
